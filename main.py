@@ -19,9 +19,14 @@ count = 1
 
 def clean_folder():
     print("clean_folder function started")
+    time.sleep(1) #wait a bit to ensure all files are closed
     images = glob.glob("images/*.png")
     for image in images:
-        os.remove(image)
+        try:
+         os.remove(image)
+        except PermissionError as e:
+            print(f"Failed to delete {image}. ERROR: {str(e)}")
+
     print("clean_folder function ended")
 
 image_with_object = None
@@ -78,11 +83,16 @@ while True:
     if status_list[0] == 1 and status_list[1] == 0 and image_with_object is not None:
         email_thread = Thread(target= send_email, args=(image_with_object, ))
         email_thread.daemon =True
+        email_thread.start()
+
+
+        email_thread.join()  # Wait for the email thread to finish
 
         clean_thread = Thread(target= clean_folder)
         clean_thread.daemon =True
+        clean_thread.start()
+
         
-        email_thread.start()
 
     print(status_list)
 
@@ -98,5 +108,4 @@ while True:
 video.release()
 
 
-clean_thread.start()
 
